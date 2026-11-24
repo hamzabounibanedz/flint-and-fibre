@@ -6,6 +6,10 @@ jobs:
   check:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    env:
+      MEDUSA_BACKEND_URL: http://127.0.0.1:9011
+      NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY: pk_ci_catalog
+      NEXT_PUBLIC_DEFAULT_REGION: us
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
@@ -18,3 +22,21 @@ jobs:
           corepack enable
           yarn install --immutable
           yarn tsc --noEmit
+          node --input-type=module <<'JS' &
+          import { createServer } from 'node:http';
+          const region = { id: 'reg_ci', name: 'US', currency_code: 'usd', countries: [{ iso_2: 'us', display_name: 'United States' }] };
+          const catalog = {
+            '/store/regions': { regions: [region] }, '/store/regions/reg_ci': { region },
+            '/store/products': { products: [], count: 0 }, '/store/collections': { collections: [], count: 0 },
+            '/store/product-categories': { product_categories: [] }, '/store/shipping-options': { shipping_options: [] },
+          };
+          createServer((req, res) => {
+            const data = catalog[new URL(req.url, 'http://localhost').pathname];
+            res.writeHead(data ? 200 : 404, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify(data ?? { message: 'Unknown test catalog endpoint' }));
+          }).listen(9011, '127.0.0.1');
+          JS
+          yarn build
+          yarn start > /tmp/storefront.log 2>&1 &
+          curl --retry 15 --retry-all-errors --retry-delay 1 -fsSL http://localhost:8000/us -o /tmp/storefront.html || { tail -40 /tmp/storefront.log; exit 1; }
+          grep -Fq 'Browse the collection' /tmp/storefront.html
