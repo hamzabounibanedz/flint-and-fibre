@@ -16,16 +16,12 @@ import { useEffect, useState } from "react"
 const PICKUP_OPTION_ON = "__PICKUP_ON"
 const PICKUP_OPTION_OFF = "__PICKUP_OFF"
 
-type ShippingOption = HttpTypes.StoreCartShippingOption & {
-  service_zone?: { fulfillment_set?: { type?: string; location?: { address?: HttpTypes.StoreCartAddress } } }
-}
-
 type ShippingProps = {
   cart: HttpTypes.StoreCart
-  availableShippingMethods: ShippingOption[] | null
+  availableShippingMethods: HttpTypes.StoreShippingOptionListResponse["shipping_options"] | null
 }
 
-function formatAddress(address?: HttpTypes.StoreCartAddress) {
+function formatAddress(address?: Partial<Record<"address_1" | "address_2" | "postal_code" | "city" | "country_code", string | null>> | null) {
   if (!address) {
     return ""
   }
