@@ -110,3 +110,8 @@
     @apply text-[32px] leading-[44px] font-semibold;
   }
 }
+
+:root { --store-ink: #484e35; --store-paper: #f6f4eb; --bg-base: var(--store-paper); --fg-base: #282b23; }
+.store-intro { color: var(--store-ink); background: var(--store-paper); padding: clamp(4rem,10vw,10rem) 6vw; border-bottom: 1px solid #c9cbb8; }
+.store-intro h1 { font: 500 clamp(3.2rem,9vw,9rem)/1.1 Georgia,serif; letter-spacing: -.06em; margin: 1.5rem 0; }
+.store-intro a { display: inline-block; padding: .85rem 1.3rem; background: var(--store-ink); color: white; }
